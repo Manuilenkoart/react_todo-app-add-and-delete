@@ -1,46 +1,63 @@
 import classNames from 'classnames';
-import { FC, memo, useEffect, useMemo, useRef } from 'react';
+import { FC, FormEvent, memo, useEffect, useMemo } from 'react';
 import { Todo } from '../types';
 import React from 'react';
 
 type Props = {
+  isLoading: boolean;
   todos: Todo[];
+  titleRef: React.RefObject<HTMLInputElement>;
+  onShowError: (err: string) => void;
+  onFormSubmit: (title: Todo['title']) => void;
 };
 
-export const Header: FC<Props> = memo(({ todos }) => {
-  const inputRef = useRef<HTMLInputElement>(null);
+export const Header: FC<Props> = memo(
+  ({ isLoading, todos, titleRef, onShowError, onFormSubmit }) => {
+    useEffect(() => {
+      titleRef.current?.focus();
+    });
 
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
+    const isAllTodosCompleted = useMemo(
+      () => todos.every(({ completed }) => completed),
+      [todos],
+    );
 
-  const isAllTodosCompleted = useMemo(
-    () => todos.every(({ completed }) => completed),
-    [todos],
-  );
+    const handleFormSubmit = async (e: FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      const fieldValue = titleRef.current?.value?.trim();
 
-  return (
-    <header className="todoapp__header">
-      <button
-        type="button"
-        className={classNames('todoapp__toggle-all ', {
-          active: isAllTodosCompleted,
-        })}
-        data-cy="ToggleAllButton"
-      />
+      if (!fieldValue) {
+        onShowError('Title should not be empty');
 
-      {/* Add a todo on form submit */}
-      <form>
-        <input
-          data-cy="NewTodoField"
-          type="text"
-          className="todoapp__new-todo"
-          placeholder="What needs to be done?"
-          ref={inputRef}
+        return;
+      }
+
+      onFormSubmit(fieldValue);
+    };
+
+    return (
+      <header className="todoapp__header">
+        <button
+          type="button"
+          className={classNames('todoapp__toggle-all ', {
+            active: isAllTodosCompleted,
+          })}
+          data-cy="ToggleAllButton"
         />
-      </form>
-    </header>
-  );
-});
+
+        <form onSubmit={handleFormSubmit}>
+          <input
+            data-cy="NewTodoField"
+            type="text"
+            className="todoapp__new-todo"
+            placeholder="What needs to be done?"
+            ref={titleRef}
+            disabled={isLoading}
+          />
+        </form>
+      </header>
+    );
+  },
+);
 
 Header.displayName = 'HeaderMemo';
