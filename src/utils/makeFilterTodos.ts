@@ -1,4 +1,4 @@
-import { ActiveFilter, Todo } from '../../types';
+import { ActiveFilter, Todo } from '../types';
 
 export const makeFilterTodos = (
   todos: Todo[],

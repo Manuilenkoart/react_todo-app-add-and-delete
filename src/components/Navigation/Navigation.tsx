@@ -1,27 +1,15 @@
-import { FC, memo, useEffect, useMemo, useState } from 'react';
-import { ActiveFilter, Todo } from '../../types';
+import { FC, memo } from 'react';
+import { ActiveFilter } from '../../types';
 import classNames from 'classnames';
 import React from 'react';
 import { navLinks } from './navLinks';
-import { makeFilterTodos } from './utils';
 
 type Props = {
-  todos: Todo[];
-  onFilter: (todos: Todo[]) => void;
+  activeFilter: ActiveFilter;
+  onFilter: (activeFilter: ActiveFilter) => void;
 };
 
-export const Navigation: FC<Props> = memo(({ todos, onFilter }) => {
-  const [activeFilter, setActiveFilter] = useState<ActiveFilter>('all');
-
-  const todosFiltered = useMemo(
-    () => makeFilterTodos(todos, activeFilter),
-    [activeFilter, todos],
-  );
-
-  useEffect(() => {
-    onFilter(todosFiltered);
-  }, [onFilter, todosFiltered]);
-
+export const Navigation: FC<Props> = memo(({ activeFilter, onFilter }) => {
   return (
     <nav className="filter" data-cy="Filter">
       {navLinks.map(({ title, href, filter, dataCy }) => (
@@ -32,7 +20,7 @@ export const Navigation: FC<Props> = memo(({ todos, onFilter }) => {
           className={classNames('filter__link ', {
             selected: activeFilter === filter,
           })}
-          onClick={() => setActiveFilter(filter)}
+          onClick={() => onFilter(filter)}
         >
           {title}
         </a>

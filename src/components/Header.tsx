@@ -22,7 +22,7 @@ export const Header: FC<Props> = memo(
       [todos],
     );
 
-    const handleFormSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    const handleFormSubmit = (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       const fieldValue = titleRef.current?.value?.trim();
 

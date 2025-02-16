@@ -8,9 +8,10 @@ import { Todo } from '../types';
 type Props = {
   isLoading: boolean;
   todo: Todo;
+  onDelete?: (id: Todo['id']) => void;
 };
 export const TodoItem: FC<Props> = memo(
-  ({ isLoading, todo: { id, completed, title } }) => {
+  ({ isLoading, todo: { id, completed, title }, onDelete = () => {} }) => {
     return (
       <div
         key={id}
@@ -33,7 +34,12 @@ export const TodoItem: FC<Props> = memo(
           {title}
         </span>
 
-        <button type="button" className="todo__remove" data-cy="TodoDelete">
+        <button
+          type="button"
+          className="todo__remove"
+          data-cy="TodoDelete"
+          onClick={() => onDelete(id)}
+        >
           ×
         </button>
 

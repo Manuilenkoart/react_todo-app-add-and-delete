@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { createTodo, getTodos, USER_ID } from './api/todos';
+import { createTodo, deleteTodo, getTodos, USER_ID } from './api/todos';
 import {
   ErrorNotification,
   Footer,
@@ -8,16 +8,19 @@ import {
   TodoItem,
   TodoList,
 } from './components';
-import { Todo } from './types';
+import { ActiveFilter, Todo } from './types';
 
 import React from 'react';
+import { makeFilterTodos } from './utils/makeFilterTodos';
+
+const NEW_TODO_DEFAULT_ID: Todo['id'] = 0;
 
 export const App: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
-  const [todosFiltered, setTodosFiltered] = useState<Todo[]>([]);
+  const [activeFilter, setActiveFilter] = useState<ActiveFilter>('all');
   const [error, setError] = useState('');
   const [tempTodo, setTempTodo] = useState<Todo | null>(null);
-  const [isAddingTodo, setIsAddingTodo] = useState(false);
+  const [loadingIds, setLoadingIds] = useState<Todo['id'][]>([]);
 
   const titleRef = useRef<HTMLInputElement>(null);
 
@@ -27,23 +30,34 @@ export const App: React.FC = () => {
       .catch(() => setError('Unable to load todos'));
   }, []);
 
-  const todosActive = useMemo(
-    () => todos.filter(({ completed }) => !completed),
-    [todos],
+  const todosFiltered = useMemo(
+    () => makeFilterTodos(todos, activeFilter),
+    [activeFilter, todos],
   );
 
   const handleFilterClick = useCallback(
-    (todo: Todo[]) => setTodosFiltered(todo),
+    (filter: ActiveFilter) => setActiveFilter(filter),
     [],
   );
 
   const handleShowError = useCallback((err: string) => setError(err), []);
   const handleHideError = useCallback(() => setError(''), []);
 
+  const handleAddLoadingId = (id: number) =>
+    setLoadingIds(prev => [...prev, id]);
+
+  const handleRemoveLoadingId = (id: number) =>
+    setLoadingIds(prev => prev.filter(i => i !== id));
+
+  const isLoading = useCallback(
+    (id: Todo['id']) => loadingIds.includes(id),
+    [loadingIds],
+  );
+
   const handleAddTodo = useCallback(
     async (title: Todo['title']) => {
       try {
-        setIsAddingTodo(true);
+        handleAddLoadingId(NEW_TODO_DEFAULT_ID);
 
         const newTodo: Omit<Todo, 'id'> = {
           title,
@@ -51,22 +65,39 @@ export const App: React.FC = () => {
           completed: false,
         };
 
-        setTempTodo({ ...newTodo, id: 0 });
+        setTempTodo({ ...newTodo, id: NEW_TODO_DEFAULT_ID });
 
         const createdTodo = await createTodo(newTodo);
 
-        if (createdTodo) {
-          setTodos(prev => [...prev, createdTodo]);
+        setTodos(prev => [...prev, createdTodo]);
 
-          if (titleRef.current) {
-            titleRef.current.value = '';
-          }
+        if (titleRef.current) {
+          titleRef.current.value = '';
         }
       } catch (err) {
         handleShowError('Unable to add a todo');
       } finally {
-        setIsAddingTodo(false);
+        handleRemoveLoadingId(NEW_TODO_DEFAULT_ID);
         setTempTodo(null);
+      }
+    },
+    [handleShowError],
+  );
+
+  const handleDeleteTodo = useCallback(
+    async (id: Todo['id']) => {
+      try {
+        handleAddLoadingId(id);
+
+        const deletedTodo = await deleteTodo(id);
+
+        if (deletedTodo) {
+          setTodos(prev => prev.filter(t => t.id !== id));
+        }
+      } catch (err) {
+        handleShowError('Unable to delete a todo');
+      } finally {
+        handleRemoveLoadingId(id);
       }
     },
     [handleShowError],
@@ -78,7 +109,7 @@ export const App: React.FC = () => {
 
       <div className="todoapp__content">
         <Header
-          isLoading={isAddingTodo}
+          isLoading={isLoading(NEW_TODO_DEFAULT_ID)}
           todos={todos}
           titleRef={titleRef}
           onShowError={handleShowError}
@@ -87,16 +118,27 @@ export const App: React.FC = () => {
 
         <TodoList>
           {todosFiltered.map(todo => (
-            <TodoItem key={todo.id} todo={todo} isLoading={false} />
+            <TodoItem
+              key={todo.id}
+              todo={todo}
+              isLoading={isLoading(todo.id)}
+              onDelete={handleDeleteTodo}
+            />
           ))}
 
           {tempTodo ? (
-            <TodoItem todo={tempTodo} isLoading={isAddingTodo} />
+            <TodoItem
+              todo={tempTodo}
+              isLoading={isLoading(NEW_TODO_DEFAULT_ID)}
+            />
           ) : null}
         </TodoList>
 
-        <Footer isShowFooter={!!todos.length} itemsLeft={todosActive.length}>
-          <Navigation todos={todos} onFilter={handleFilterClick} />
+        <Footer todos={todos} onDelete={handleDeleteTodo}>
+          <Navigation
+            activeFilter={activeFilter}
+            onFilter={handleFilterClick}
+          />
         </Footer>
       </div>
 
