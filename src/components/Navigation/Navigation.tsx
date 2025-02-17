@@ -1,12 +1,12 @@
 import { FC, memo } from 'react';
-import { ActiveFilter } from '../../types';
+import { Filter } from '../../types';
 import classNames from 'classnames';
 import React from 'react';
 import { navLinks } from './navLinks';
 
 type Props = {
-  activeFilter: ActiveFilter;
-  onFilter: (activeFilter: ActiveFilter) => void;
+  activeFilter: Filter;
+  onFilter: (activeFilter: Filter) => void;
 };
 
 export const Navigation: FC<Props> = memo(({ activeFilter, onFilter }) => {

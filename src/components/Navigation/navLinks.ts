@@ -1,10 +1,10 @@
-import { ActiveFilter } from '../../types';
+import { Filter } from '../../types';
 
 type NavLink = {
-  title: Capitalize<ActiveFilter>;
-  href: Extract<ActiveFilter, 'active' | 'completed'> | '';
-  filter: ActiveFilter;
-  dataCy: `FilterLink${Capitalize<ActiveFilter>}`;
+  title: Capitalize<Filter>;
+  href: Filter.active | Filter.completed | '';
+  filter: Filter;
+  dataCy: `FilterLink${Capitalize<Filter>}`;
 };
 
 export const navLinks: NavLink[] = [
@@ -12,18 +12,18 @@ export const navLinks: NavLink[] = [
     title: 'All',
     href: '',
     dataCy: 'FilterLinkAll',
-    filter: 'all',
+    filter: Filter.all,
   },
   {
     title: 'Active',
-    href: 'active',
+    href: Filter.active,
     dataCy: 'FilterLinkActive',
-    filter: 'active',
+    filter: Filter.active,
   },
   {
     title: 'Completed',
-    href: 'completed',
+    href: Filter.completed,
     dataCy: 'FilterLinkCompleted',
-    filter: 'completed',
+    filter: Filter.completed,
   },
 ];

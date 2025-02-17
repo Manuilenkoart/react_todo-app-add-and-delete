@@ -8,7 +8,7 @@ import {
   TodoItem,
   TodoList,
 } from './components';
-import { ActiveFilter, Todo } from './types';
+import { Filter, Todo } from './types';
 
 import React from 'react';
 import { makeFilterTodos } from './utils/makeFilterTodos';
@@ -17,7 +17,7 @@ const NEW_TODO_DEFAULT_ID: Todo['id'] = 0;
 
 export const App: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
-  const [activeFilter, setActiveFilter] = useState<ActiveFilter>('all');
+  const [activeFilter, setActiveFilter] = useState<Filter>(Filter.all);
   const [error, setError] = useState('');
   const [tempTodo, setTempTodo] = useState<Todo | null>(null);
   const [loadingIds, setLoadingIds] = useState<Todo['id'][]>([]);
@@ -36,7 +36,7 @@ export const App: React.FC = () => {
   );
 
   const handleFilterClick = useCallback(
-    (filter: ActiveFilter) => setActiveFilter(filter),
+    (filter: Filter) => setActiveFilter(filter),
     [],
   );
 
