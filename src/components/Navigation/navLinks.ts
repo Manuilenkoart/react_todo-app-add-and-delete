@@ -2,7 +2,7 @@ import { Filter } from '../../types';
 
 type NavLink = {
   title: Capitalize<Filter>;
-  href: Filter.active | Filter.completed | '';
+  href: Exclude<Filter, 'all'> | '';
   filter: Filter;
   dataCy: `FilterLink${Capitalize<Filter>}`;
 };
